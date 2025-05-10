@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Intake Summary</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1100px;
+            margin: 50px auto;
+        }
+
+        .summary-container {
+            flex: 3;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-responsive {
+            margin-bottom: 20px;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+        }
+
+        .progress {
+            height: 20px;
+        }
+
+        .log-meal-button, .edit-calorie-goal-form button, .delete-button {
+            margin-top: 10px;
+        }
+
+        .edit-calorie-goal-form input[type="number"] {
+            max-width: 100px;
+            margin-right: 10px;
+        }
+
+        .chart-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-left: 20px;
+        }
+
+        .delete-button {
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+        }
+
+        header {
+            padding: 15px;
+            background-color: #28a745;
+            color: white;
+            text-align: center;
+        }
+
+        nav {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        nav a {
+            margin: 0 15px;
+            font-weight: bold;
+            color: #28a745;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            color: #155724;
+        }
+        .chart-section {
+    text-align: center;
+    padding: 20px;
+    }
+
+    .chart-title {
+        margin-bottom: 10px;
+        font-size: 1.5em;
+        color: #333;
+    }
+
+    .chart-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="p-3 bg-success text-white text-center">
+        <h1>Welcome to TrackMyMeals</h1>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="text-center my-4">
+        <a href="{% url 'home' %}">Home</a>
+        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" style="background: none; border: none; color: #28a745; font-weight: bold;">Logout</button>
+        </form>
+    </nav>
+
+    <div class="container">
+        <!-- Daily Intake Summary Table and Controls -->
+        <div class="summary-container">
+            <h2>Daily Intake Summary</h2>
+            {% if meals %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Meal Name</th>
+                                <th>Type of Meal</th>
+                                <th>Calories</th>
+                                <th>Protein (g)</th>
+                                <th>Carbohydrates (g)</th>
+                                <th>Fiber (g)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for meal in meals %}
+                            <tr>
+                                <td>{{ meal.meal.name }}</td>
+                                <td>{{ meal.meal_type }}</td>
+                                <td>{{ meal.meal.calories | floatformat:2 }}</td>
+                                <td>{{ meal.meal.protein_g | floatformat:2 }}</td>
+                                <td>{{ meal.meal.carbohydrates_total_g | floatformat:2 }}</td>
+                                <td>{{ meal.meal.fiber_g | floatformat:2 }}</td>
+                                <td>
+                                    <form action="{% url 'delete_meal' meal.id %}" method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="delete-button">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <th>Total</th>
+                                <td></td>
+                                <td>{{ daily_intake.total_calories | floatformat:2 }}</td>
+                                <td>{{ daily_intake.total_protein_g | floatformat:2 }}</td>
+                                <td>{{ daily_intake.total_carbohydrates_g | floatformat:2 }}</td>
+                                <td>{{ daily_intake.total_fiber_g | floatformat:2 }}</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Calorie Progress</h3>
+                <div class="progress-container">
+                    <progress value="{{ daily_intake.total_calories }}" max="{{ calorie_goal }}" class="progress"></progress>
+                    <p>{{ remaining_calories | floatformat:2 }} calories left to reach your goal.</p>
+                </div>
+
+                <!-- Edit Calorie Goal Form -->
+                <div class="edit-calorie-goal-form">
+                    <form method="post" action="{% url 'edit_calorie_goal' %}">
+                        {% csrf_token %}
+                        {{ form.calorie_goal.label_tag }}
+                        {{ form.calorie_goal }}
+                        <button type="submit" class="btn btn-primary">Update Calorie Goal</button>
+                    </form>
+                </div>
+                <a href="{% url 'log_meal' %}" class="btn btn-success log-meal-button">Log Meal</a>
+            {% else %}
+                <a href="{% url 'log_meal' %}" class="btn btn-success log-meal-button">Log Meal</a>
+                <p>No meals logged yet today.</p>
+            {% endif %}
+        </div>
+
+        <!-- Pie Chart Section -->
+        <div class="chart-section">
+            <h3 class="chart-title">Nutrition Breakdown</h3>
+            <div class="chart-container">
+                <canvas id="chartjs-pie"></canvas>
+            </div>
+        </div>
+
+    <script>
+        const data = {
+            labels: ["Protein", "Carbohydrates", "Fiber"],
+            datasets: [{
+                data: [
+                    {{ daily_intake.total_protein_g|default:0 }},
+                    {{ daily_intake.total_carbohydrates_g|default:0 }},
+                    {{ daily_intake.total_fiber_g|default:0 }}
+                ],
+                backgroundColor: ["#A0D7E6", "#FF6347", "#FFD3B6"],
+                borderColor: "transparent"
+            }]
+        };
+
+        const options = {
+            maintainAspectRatio: false,
+            cutoutPercentage: 65,
+        };
+
+        new Chart(document.getElementById("chartjs-pie"), {
+            type: "pie",
+            data: data,
+            options: options
+        });
+    </script>
+</body>
+</html>

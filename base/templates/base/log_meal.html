@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Your Meal</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        button.submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        button.submit-btn:hover {
+            background-color: #45a049;
+        }
+
+        @media (max-width: 600px) {
+            .form-container {
+                margin: 20px;
+                padding: 15px;
+            }
+
+            button.submit-btn {
+                padding: 8px 10px;
+            }
+        }
+        header {
+            padding: 15px;
+            background-color: #28a745;
+            color: white;
+            text-align: center;
+        }
+
+        nav {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        nav a {
+            margin: 0 15px;
+            font-weight: bold;
+            color: #28a745;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+
+     <!-- Header -->
+     <header class="p-3 bg-success text-white text-center">
+        <h1>Welcome to TrackMyMeals</h1>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="text-center my-4">
+        <a href="{% url 'home' %}">Home</a>
+        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" style="background: none; border: none; color: #28a745; font-weight: bold;">Logout</button>
+        </form>
+    </nav>
+
+    <div class="form-container">
+        <h2>Log Your Meal</h2>
+        {% if error %}
+            <div class="error-message" style="color: red;">{{ error }}</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="meal_type">Meal Type:</label>
+                <select name="meal_type" id="meal_type" required>
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="snacks">Snacks</option>
+                    <option value="dinner">Dinner</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="meal_name">Meal Name:</label>
+                <input type="text" name="meal_name" id="meal_name" required>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity (servings):</label>
+                <input type="number" name="quantity" id="quantity" value="1.0" step="0.1" required>
+            </div>
+            {% if not daily_intake_exists %}
+                <div class="form-group">
+                    <label for="calorie_goal">Calorie Goal:</label>
+                    <input type="number" name="calorie_goal" id="calorie_goal" required>
+                </div>
+            {% endif %}
+            <button type="submit" class="submit-btn">Log Meal</button>
+        </form>
+    </div>    
+</body>
+</html>
