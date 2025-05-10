@@ -154,3 +154,7 @@ if not DEBUG:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'base.User'
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://track-my-meals.onrender.com',
+]
